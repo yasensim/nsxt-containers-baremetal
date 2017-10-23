@@ -1,0 +1,62 @@
+---
+- name: Prepare baremetal nodes
+  hosts: OSEv3:children
+  gather_facts: True
+  tasks:
+    - name: Create an integration bridge
+      openvswitch_bridge:
+        bridge: br-int
+        state: present
+        fail_mode: standalone
+    - name: Create veth pair
+      command: ip link add nsx-patch-outer type veth peer name nsx-patch-inner
+    - name: Bring outer up
+      command: ip link set nsx-patch-outer up
+    - name: Bring iner up
+      command: ip link set nsx-patch-inner up
+    - name: connect inner patch to br-int
+      openvswitch_port:
+        bridge: br-int
+        port: nsx-patch-inner
+        set: Interface nsx-patch-inner ofport=1
+        state: present
+    - name: Get outer MAC address
+      command: bash -c "ip link show nsx-patch-outer |grep ether|awk '{print $2}'"
+      register: mac
+    - name: connect outer patch to nsx-managed
+      openvswitch_port:
+        bridge: nsx-managed
+        port: nsx-patch-outer
+        state: present
+    - name: Set switchport external_ids
+      openvswitch_port:
+        bridge: nsx-managed
+        port: nsx-patch-outer
+        state: present
+      args:
+        external_ids:
+          iface-id: "{{ ansible_hostname }}-parrent-vif"
+          attached-mac: "{{ mac.stdout }}"
+          iface-status: active
+    - name: Set ofport 1
+      command: bash -c "ovs-vsctl set Interface nsx-patch-inner ofport=1"
+    - name: Set VIF id
+      command: bash -c "ovs-vsctl set Interface nsx-patch-outer external-ids:iface-id={{ ansible_hostname }}-parent-vif"
+    - name: Set VIF Mac address
+      command: bash -c "ovs-vsctl set Interface nsx-patch-outer external-ids:attached-mac={{ mac.stdout }}"
+    - name: Set VIF status active
+      command: bash -c "ovs-vsctl set Interface nsx-patch-outer external-ids:iface-status=active"
+    - name: Create switchport in NSX
+      uri:
+        url: https://{{ hostvars.nsxmanager.ip }}/api/v1/logical-ports
+        method: POST
+        user: admin
+        password: "{{ hostvars.nsxmanager.password }}"
+        headers:
+          Content-Type: "application/json"
+        body: "{ \"logical_switch_id\": \"{{ hostvars.nsxmanager.parent_vifs_ls }}\", \"attachment\": {\"attachment_type\": \"VIF\",\"id\": \"{{ ansible_hostname }}-parent-vif\"}, \"admin_state\": \"UP\" }"
+        force_basic_auth: yes
+        validate_certs: no
+        status_code: 201
+        body_format: json
+
