@@ -41,7 +41,7 @@
     - name: Set ofport 1
       command: bash -c "ovs-vsctl set Interface nsx-patch-inner ofport=1"
     - name: Set VIF id
-      command: bash -c "ovs-vsctl set Interface nsx-patch-outer external-ids:iface-id={{ ansible_hostname }}-parent-vif"
+      command: bash -c "ovs-vsctl set Interface nsx-patch-outer external-ids:iface-id={{ ansible_hostname }}-parent-vif-{{ mac.stdout }}"
     - name: Set VIF Mac address
       command: bash -c "ovs-vsctl set Interface nsx-patch-outer external-ids:attached-mac={{ mac.stdout }}"
     - name: Set VIF status active
@@ -54,7 +54,7 @@
         password: "{{ hostvars.nsxmanager.password }}"
         headers:
           Content-Type: "application/json"
-        body: "{ \"logical_switch_id\": \"{{ hostvars.nsxmanager.parent_vifs_ls }}\", \"attachment\": {\"attachment_type\": \"VIF\",\"id\": \"{{ ansible_hostname }}-parent-vif\"}, \"admin_state\": \"UP\" }"
+        body: "{ \"logical_switch_id\": \"{{ hostvars.nsxmanager.parent_vifs_ls }}\", \"attachment\": {\"attachment_type\": \"VIF\",\"id\": \"{{ ansible_hostname }}-parent-vif-{{ mac.stdout }}\"}, \"admin_state\": \"UP\" }"
         force_basic_auth: yes
         validate_certs: no
         status_code: 201
@@ -63,8 +63,8 @@
       template: 
         src=./templates/ifcfg-patch
         dest=/etc/sysconfig/network-scripts/ifcfg-patch
-    - name: Create ifup script
-      copy: src=./files/ifup-veth dest=/etc/sysconfig/network-scripts/ owner=root group=root mode=0755
-    - name: Create ifdown script
-      copy: src=./files/ifdown-veth dest=/etc/sysconfig/network-scripts/ owner=root group=root mode=0755
+#    - name: Create ifup script
+#      copy: src=./files/ifup-veth dest=/etc/sysconfig/network-scripts/ owner=root group=root mode=0755
+#    - name: Create ifdown script
+#      copy: src=./files/ifdown-veth dest=/etc/sysconfig/network-scripts/ owner=root group=root mode=0755
 
