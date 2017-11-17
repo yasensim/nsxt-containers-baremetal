@@ -59,4 +59,12 @@
         validate_certs: no
         status_code: 201
         body_format: json
+    - name: Create Init file
+      template: 
+        src=./templates/ifcfg-patch
+        dest=/etc/sysconfig/network-scripts/ifcfg-patch
+    - name: Create ifup script
+      copy: src=./files/ifup-veth dest=/etc/sysconfig/network-scripts/ owner=root group=root mode=0755
+    - name: Create ifdown script
+      copy: src=./files/ifdown-veth dest=/etc/sysconfig/network-scripts/ owner=root group=root mode=0755
 

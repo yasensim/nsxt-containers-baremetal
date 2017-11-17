@@ -1,0 +1,9 @@
+DEVICE="nsx-patch-outer"
+TYPE="veth"
+DEVICETYPE="Ethernet"
+BOOTPROTO="static"
+ONBOOT="yes"
+NM_CONTROLLED="no"
+
+VETH_PARENT="nsx-patch-inner"
+VETH_MAC="{{ mac.stdout }}"
