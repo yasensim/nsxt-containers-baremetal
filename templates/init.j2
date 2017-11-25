@@ -1,0 +1,23 @@
+#!/bin/sh
+#
+# nsxt-container-baremetal
+#
+# chkconfig: 2345 08 92
+# description: Creates veth pair for connecting between ovs bridges nsx-managed and br-int
+
+# Author Yasen Simeonov
+# https://github.com/yasensim/nsxt-containers-baremetal
+#
+### BEGIN INIT INFO
+# Provides:          nsxt-container-baremetal
+# Required-Start:
+# Required-Stop:
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: nsxt-container-baremetal
+### END INIT INFO
+
+/usr/sbin/ip link add nsx-patch-outer type veth peer name nsx-patch-inner
+/usr/sbin/ip link set dev nsx-patch-outer address "{{ mac.stdout }}"
+/usr/sbin/ip link set dev nsx-patch-outer up
+/usr/sbin/ip link set dev nsx-patch-inner up
