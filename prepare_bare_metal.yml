@@ -10,6 +10,7 @@
         fail_mode: standalone
     - name: Create veth pair
       command: ip link add nsx-patch-outer type veth peer name nsx-patch-inner
+      when: ansible_nsx_patch_outer is not defined
     - name: Bring outer up
       command: ip link set nsx-patch-outer up
     - name: Bring iner up
@@ -28,6 +29,7 @@
         bridge: nsx-managed
         port: nsx-patch-outer
         state: present
+      ignore_errors: True
     - name: Set switchport external_ids
       openvswitch_port:
         bridge: nsx-managed
@@ -59,10 +61,11 @@
         validate_certs: no
         status_code: 201
         body_format: json
+      ignore_errors: True
     - name: Create Init file
-      template: 
-        src=./templates/init.j2
-        dest=/etc/init.d/nsxt-container-baremetal
+      template:
+        src: ./templates/init.j2
+        dest: /etc/init.d/nsxt-container-baremetal
         owner: root
         group: root
         mode: 0755

@@ -18,6 +18,6 @@
 ### END INIT INFO
 
 /usr/sbin/ip link add nsx-patch-outer type veth peer name nsx-patch-inner
-/usr/sbin/ip link set dev nsx-patch-outer address "{{ mac.stdout }}"
+/usr/sbin/ip link set dev nsx-patch-outer address {{ mac.stdout }}
 /usr/sbin/ip link set dev nsx-patch-outer up
 /usr/sbin/ip link set dev nsx-patch-inner up
