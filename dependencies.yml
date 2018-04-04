@@ -1,0 +1,43 @@
+nsx_rhel_dep:
+  - tcpdump
+  - boost-filesystem
+  - PyYAML
+  - boost-iostreams
+  - boost-chrono
+  - python-mako
+  - python-netaddr
+  - python-six
+  - python-beaker
+  - libyaml
+  - python-markupsafe
+  - python-paste
+  - python-tempita
+  - gperftools-libs
+  - libunwind
+  - snappy
+  - boost-date-time
+  - yum-utils
+  - wget
+  - net-tools
+  - redhat-lsb-core
+  - time
+  - c-ares
+  - cyrus-sasl
+  - cyrus-sasl-gssapi
+  - libvirt-libs
+  - lsof
+  - nmap-ncat
+  - yajl
+  - cyrus-sasl-lib 
+  - libguestfs-tools
+  - bridge-utils
+  - glibc.i686
+  - nspr
+  - vim-common
+  - libvirt
+  - libvirt-daemon-driver-qemu
+  - libvirt-python 
+  - virt-install
+  - yum-utils
+
+nodes_root_password: VMware1!

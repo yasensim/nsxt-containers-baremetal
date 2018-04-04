@@ -1,13 +1,8 @@
 ---
 - name: Prepare baremetal nodes
-  hosts: OSEv3:children
+  hosts: nodes
   gather_facts: True
   tasks:
-    - name: Create an integration bridge
-      openvswitch_bridge:
-        bridge: br-int
-        state: present
-        fail_mode: standalone
     - name: Create veth pair
       command: ip link add nsx-patch-outer type veth peer name nsx-patch-inner
       when: ansible_nsx_patch_outer is not defined
@@ -15,12 +10,8 @@
       command: ip link set nsx-patch-outer up
     - name: Bring iner up
       command: ip link set nsx-patch-inner up
-    - name: connect inner patch to br-int
-      openvswitch_port:
-        bridge: br-int
-        port: nsx-patch-inner
-        set: Interface nsx-patch-inner ofport=1
-        state: present
+    - name: configure IP on inner patch
+      command: ifconfig nsx-patch-inner 192.168.10.11/24 up
     - name: Get outer MAC address
       command: bash -c "ip link show nsx-patch-outer |grep ether|awk '{print $2}'"
       register: mac

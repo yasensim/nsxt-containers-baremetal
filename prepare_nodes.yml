@@ -1,0 +1,41 @@
+---
+- name: Print out info
+  hosts: nodes
+  gather_facts: True
+  vars_files:
+    - ./dependencies.yml
+  tasks:
+    - name: install nsx dependencies
+      package:
+        name: "{{ item }}"
+        state: present
+      with_items: "{{ nsx_rhel_dep }}"
+      when: ansible_distribution == 'RedHat'
+    - name: retrieve the SHA-256 thumbprint from nodes
+      command: bash -c "awk '{print $2}' /etc/ssh/ssh_host_rsa_key.pub | base64 -d | sha256sum -b | sed 's/ .*$//' | xxd -r -p | base64"
+      when: ansible_distribution == 'RedHat' or ansible_distribution == 'Ubuntu'
+      register: thumbprint
+    - name: Check if node is registered
+      command: nsxcli -c get node-uuid
+      failed_when: false
+      register: nodeuuid
+    - name: Ensure libvirtd is running
+      service:
+        name: libvirtd
+        state: started
+        enabled: yes
+    - name: Install NSX kernel modules
+      uri:
+        url: https://{{ hostvars.nsxmanager.ip }}/api/v1/fabric/nodes
+        method: POST
+        user: admin
+        password: "{{ hostvars.nsxmanager.password }}"
+        headers:
+          Content-Type: "application/json"
+        body: "{ \"resource_type\" : \"HostNode\", \"display_name\" : \"{{ ansible_nodename }}\", \"ip_addresses\" : [ \"{{ ansible_ssh_host }}\" ], \"os_type\" : \"RHELKVM\", \"os_version\" : \"{{ ansible_distribution_version }}\", \"host_credential\": { \"username\": \"root\", \"password\": \"{{ nodes_root_password }}\", \"thumbprint\": \"{{ thumbprint.stdout }}\" } }"
+        force_basic_auth: yes
+        validate_certs: no
+        status_code: 201
+        body_format: json
+      ignore_errors: True
+
